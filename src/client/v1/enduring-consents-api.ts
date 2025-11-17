@@ -28,6 +28,8 @@ import {decamelizeKeys} from 'humps';
 import {BlinkInvalidValueException} from '../../exceptions/index.js';
 import {GenericParameters} from "../../util/types.js";
 import {buildRequestHeaders} from "../../util/helper.js";
+import {executeWithRetry} from "../../util/retry-helper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * EnduringConsentsApi - axios parameter creator
@@ -221,16 +223,24 @@ export const EnduringConsentsApiFp = function (axios: AxiosInstance, configurati
          * @param {GenericParameters} params the generic parameters
          */
         async createEnduringConsent(body: EnduringConsentRequest, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<CreateConsentResponse>>> {
-            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).createEnduringConsent(body, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+            const idempotencyKey = params.idempotencyKey || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId, idempotencyKey };
+            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).createEnduringConsent(body, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId, idempotencyKey }
+                );
             };
         },
         /**
@@ -240,16 +250,23 @@ export const EnduringConsentsApiFp = function (axios: AxiosInstance, configurati
          * @param {GenericParameters} params the generic parameters
          */
         async getEnduringConsent(consentId: string, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<Consent>>> {
-            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).getEnduringConsent(consentId, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).getEnduringConsent(consentId, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
         /**
@@ -259,16 +276,23 @@ export const EnduringConsentsApiFp = function (axios: AxiosInstance, configurati
          * @param {GenericParameters} params the generic parameters
          */
         async revokeEnduringConsent(consentId: string, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<void>>> {
-            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).revokeEnduringConsent(consentId, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await EnduringConsentsApiAxiosParamCreator(axios, configuration).revokeEnduringConsent(consentId, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
     }

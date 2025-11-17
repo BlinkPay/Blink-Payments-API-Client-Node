@@ -29,6 +29,7 @@ import {
     BlinkInvalidValueException,
     BlinkNotImplementedException,
     BlinkRateLimitExceededException,
+    BlinkRequestTimeoutException,
     BlinkResourceNotFoundException,
     BlinkRetryableException,
     BlinkServiceException,
@@ -126,31 +127,15 @@ export class Configuration {
      */
     private readonly _tokenApi: TokenAPI;
 
-    constructor(axios: AxiosInstance, config: BlinkPayConfig);
+    constructor(axios: AxiosInstance, config?: BlinkPayConfig);
 
-    constructor(axios: AxiosInstance, configDirectory?: string, configFile?: string);
-
-    constructor(axios: AxiosInstance, configDirectoryOrConfig?: string | BlinkPayConfig, configFile?: string) {
-        let config;
+    constructor(axios: AxiosInstance, config?: BlinkPayConfig) {
         let timeout;
         let retryEnabled;
         // check if it's not a browser environment
         if (typeof window === 'undefined') {
             // Node.js server-side environment
-            const fs = require('fs');
-
-            if (typeof configDirectoryOrConfig === 'string') {
-                // load properties from config.json
-                // environment variables from .env have higher priority
-                const configPath = this.getConfigPath(configDirectoryOrConfig, configFile);
-                config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-            } else if (configDirectoryOrConfig === undefined) {
-                // No config provided, will read from environment variables
-                config = undefined;
-            } else {
-                // Config object provided
-                config = configDirectoryOrConfig;
-            }
+            // Config object provided or undefined (use env vars)
 
             this.debitUrl = process.env.BLINKPAY_DEBIT_URL
                 ? process.env.BLINKPAY_DEBIT_URL
@@ -175,7 +160,7 @@ export class Configuration {
         } else {
             // Browser environment detected - only allow if config is explicitly provided
             // This supports SSR scenarios like Next.js API routes where window exists but code runs server-side
-            if (!configDirectoryOrConfig || typeof configDirectoryOrConfig !== 'object') {
+            if (!config || typeof config !== 'object') {
                 throw new BlinkInvalidValueException(
                     "Blink Debit SDK detected browser environment. " +
                     "This SDK must only be used server-side (Node.js backend, Next.js API routes, etc.). " +
@@ -183,8 +168,6 @@ export class Configuration {
                     "If you are in a server-side rendering context, ensure you pass the config object explicitly."
                 );
             }
-
-            config = configDirectoryOrConfig as BlinkPayConfig;
 
             this.debitUrl = config.blinkpay.debitUrl;
             timeout = config.blinkpay.timeout;
@@ -266,7 +249,8 @@ export class Configuration {
                 if (data.client_secret) {
                     data.client_secret = '***REDACTED CLIENT SECRET***';
                 }
-                log.info(`Data: ${qs.stringify(data, {arrayFormat: 'brackets'})}`);
+                // Request data may contain sensitive payment info - debug level only
+                log.debug(`Data: ${qs.stringify(data, {arrayFormat: 'brackets'})}`);
             }
 
             return request;
@@ -293,34 +277,44 @@ export class Configuration {
             const body = error.response.data ? error.response.data : { message: error.message };
             switch (status) {
                 case 401:
-                    log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                    // Auto-retry with token refresh - debug level (expected, will be retried)
+                    log.debug(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkUnauthorisedException(body.message);
                 case 403:
-                    log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                    // Business logic/permissions issue - warn level (may need developer action)
+                    log.warn(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkForbiddenException(body.message);
                 case 404:
-                    log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                    // Expected condition (resource check) - debug level
+                    log.debug(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkResourceNotFoundException(body.message);
                 case 408:
+                    // Client timeout - error level (critical, NOT retried)
                     log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
-                    throw new BlinkRetryableException(body.message);
+                    throw new BlinkRequestTimeoutException(body.message);
                 case 422:
-                    log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                    // Client input validation error - warn level (developer needs to fix input)
+                    log.warn(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkInvalidValueException(body.message);
                 case 429:
-                    log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                    // Rate limit - warn level (will be retried with backoff)
+                    log.warn(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkRateLimitExceededException(body.message);
                 case 501:
+                    // Not implemented - error level (SDK/API version mismatch)
                     log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkNotImplementedException(body.message);
                 case 502:
+                    // Bad gateway - error level (server error, will be retried)
                     log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                     throw new BlinkServiceException(`Service call to Blink Debit failed with error: ${body.message}, please contact BlinkPay with the correlation ID: ${headers['x-correlation-id']}`);
                 default:
                     if (status >= 400 && status < 500) {
-                        log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
+                        // Other 4xx client errors - warn level
+                        log.warn(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                         throw new BlinkClientException(body.message);
                     } else if (status >= 500) {
+                        // Server errors - error level (critical, will be retried)
                         log.error(`Status Code: ${status}\nHeaders: ${JSON.stringify(headers)}\nBody: ${body.message}`);
                         throw new BlinkRetryableException(body.message);
                     }
@@ -328,6 +322,15 @@ export class Configuration {
         });
     }
 
+    /**
+     * Configure retry policy for the Axios instance.
+     *
+     * Note: The Cockatiel retry policy configured here is ONLY used by the polling helper methods
+     * (awaitSuccessfulConsentStatus, awaitSuccessfulPaymentStatus, awaitSuccessfulRefundStatus).
+     * It is NOT used for regular API calls, which handle their own retries via executeWithRetry().
+     *
+     * @private
+     */
     private configureRetry() {
         if (!this._retryEnabled) {
             return;
@@ -353,15 +356,4 @@ export class Configuration {
         return headers;
     }
 
-    private getConfigPath(directory: string | undefined, filename: string = 'config.json'): string {
-        // check if it's not a browser environment
-        if (typeof window === 'undefined') {
-            const path = require('path');
-            if (directory) {
-                return path.resolve(__dirname, directory, filename);
-            } else {
-                return path.resolve(__dirname, filename);
-            }
-        }
-    }
 }

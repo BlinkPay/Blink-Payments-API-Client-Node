@@ -81,15 +81,12 @@ export class BlinkDebitClient {
 
     constructor(axios: AxiosInstance, config: BlinkPayConfig);
 
-    constructor(axios: AxiosInstance, configDirectory: string, configFile: string);
-
     constructor(axios: AxiosInstance, debitUrl: string, clientId: string, clientSecret: string);
 
     constructor(axios?: AxiosInstance, configDirectoryOrConfigOrDebitUrl?: string | BlinkPayConfig, configFileOrClientId?: string, clientSecret?: string) {
         let configDirectoryOrConfig;
-        let configFile;
         if (!axios && !configDirectoryOrConfigOrDebitUrl && !configFileOrClientId && !clientSecret) {
-            // Handle no-arg constructor: Configuration will read from environment variables
+            // Handle no-arg constructor: Create axios instance and read config from environment variables
             axios = globalAxios.create({
                 headers: {
                     'Accept': 'application/json'
@@ -102,10 +99,6 @@ export class BlinkDebitClient {
         } else if (axios && typeof configDirectoryOrConfigOrDebitUrl === 'object') {
             // Handle axios, config constructor: Use provided config object
             configDirectoryOrConfig = configDirectoryOrConfigOrDebitUrl;
-        } else if (axios && typeof configDirectoryOrConfigOrDebitUrl === 'string' && typeof configFileOrClientId === 'string' && !clientSecret) {
-            // Handle axios, configDirectory, configFile constructor: Pass to Configuration for file reading
-            configDirectoryOrConfig = configDirectoryOrConfigOrDebitUrl;
-            configFile = configFileOrClientId;
         } else if (axios && typeof configDirectoryOrConfigOrDebitUrl === 'string' && typeof configFileOrClientId === 'string' && clientSecret) {
             // Handle axios, debitUrl, clientId, clientSecret constructor: Create config from parameters
             configDirectoryOrConfig = {
@@ -117,13 +110,15 @@ export class BlinkDebitClient {
                     retryEnabled: true
                 }
             };
+        } else {
+            throw new BlinkInvalidValueException("Invalid constructor arguments. Use one of: new BlinkDebitClient(), new BlinkDebitClient(axios), new BlinkDebitClient(axios, config), or new BlinkDebitClient(axios, debitUrl, clientId, clientSecret)");
         }
 
         if (!axios) {
             throw new BlinkInvalidValueException("Axios instance is required");
         }
 
-        const configuration = new Configuration(axios, configDirectoryOrConfig as any, configFile);
+        const configuration = new Configuration(axios, configDirectoryOrConfig as any);
 
         this._singleConsentsApi = SingleConsentsApiFactory(axios, configuration, undefined);
         this._enduringConsentsApi = EnduringConsentsApiFactory(axios, configuration, undefined);

@@ -33,4 +33,5 @@ coverage/
 
 # Temporary files
 *.tmp
-.cache/
+.cache/repomix.config.json
+repomix-output.txt

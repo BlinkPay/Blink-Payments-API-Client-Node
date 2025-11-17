@@ -1,4 +1,4 @@
-# Blink-Debit-API-Client-Node
+# Blink Payments API client for Node.js
 [![CI](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml/badge.svg)](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml)
 [![NPM](https://img.shields.io/npm/v/blink-debit-api-client-node.svg)](https://npmjs.org/package/blink-debit-api-client-node)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-node&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-node)
@@ -68,11 +68,14 @@ BLINKPAY_TIMEOUT=10000
 ```
 
 Create and use the client:
-- `sample.js`
+
+**Note**: The SDK is distributed as CommonJS. Choose the import style based on your project configuration:
+
+- **CommonJS** (`sample.js` without `"type": "module"` in package.json)
 ```javascript
-import axios from 'axios';
-import log from 'loglevel';
-import { BlinkDebitClient, AuthFlowDetailTypeEnum, AmountCurrencyEnum } from 'blink-debit-api-client-node';
+const axios = require('axios');
+const log = require('loglevel');
+const { BlinkDebitClient, AuthFlowDetailTypeEnum, AmountCurrencyEnum } = require('blink-debit-api-client-node');
 
 const client = new BlinkDebitClient(axios);
 
@@ -103,7 +106,45 @@ async function createQuickPayment() {
 
 await createQuickPayment();
 ```
-- `sample.ts`
+
+- **ESM** (`sample.js` with `"type": "module"` in package.json)
+```javascript
+import axios from 'axios';
+import log from 'loglevel';
+import pkg from 'blink-debit-api-client-node';
+const { BlinkDebitClient, AuthFlowDetailTypeEnum, AmountCurrencyEnum } = pkg;
+
+const client = new BlinkDebitClient(axios);
+
+const request = {
+    flow: {
+        detail: {
+            type: AuthFlowDetailTypeEnum.Gateway,
+            redirectUri: "https://www.blinkpay.co.nz/sample-merchant-return-page"
+        }
+    },
+    amount: {
+        currency: AmountCurrencyEnum.NZD,
+        total: '0.01'
+    },
+    pcr: {
+        particulars: 'particulars',
+        code: 'code',
+        reference: 'reference'
+    }
+};
+
+async function createQuickPayment() {
+    const qpCreateResponse = await client.createQuickPayment(request);
+    log.info("Redirect URL: {}", qpCreateResponse.redirectUri); // Redirect the consumer to this URL
+    const qpId = qpCreateResponse.quickPaymentId;
+    const qpResponse = await client.awaitSuccessfulQuickPaymentOrThrowException(qpId, 300); // Will throw an exception if the payment was not successful after 5min
+}
+
+await createQuickPayment();
+```
+
+- **TypeScript** (`sample.ts`)
 ```typescript
 import axios from 'axios';
 import log from 'loglevel';
@@ -176,19 +217,25 @@ Substitute the correct values in your `config.json` file. Since this file can be
 ```
 
 ## Client creation
-In a `Node.js environment`, if you've configured the `.env` file locally or via CI/CD, you can just create the client with:
+
+The SDK provides 4 constructor signatures for different use cases:
+
+### 1. No Arguments (Auto-creates Axios + Environment Variables)
+The simplest way to create a client - uses `.env` configuration:
 ```javascript
+const client = new BlinkDebitClient();
+```
+The SDK will automatically create an Axios instance and read configuration from environment variables.
+
+### 2. Axios Instance Only (Environment Variables)
+Provide your own configured Axios instance:
+```javascript
+import axios from 'axios';
 const client = new BlinkDebitClient(axios);
 ```
 
-Another way is to pass the path to a JSON configuration file:
-```javascript
-const directory = '/path/to/config/directory';
-const fileName = 'my-config.json'
-const client = new BlinkDebitClient(axios, directory, fileName);
-```
-
-Alternatively, the client can be created with explicit configuration by passing the BlinkPayConfig:
+### 3. Axios + Config Object (Explicit Configuration)
+Pass configuration explicitly via object:
 - `JavaScript`
 ```javascript
 const blinkPayConfig = {
@@ -216,17 +263,26 @@ const blinkPayConfig: BlinkPayConfig = {
 const client = new BlinkDebitClient(axios, blinkPayConfig);
 ```
 
-or by providing the required parameters:
-
+### 4. Axios + Individual Parameters (Explicit Credentials)
+Pass credentials directly as separate arguments:
 ```javascript
-const client = new BlinkDebitClient(axios, process.env.BLINKPAY_DEBIT_URL,
-    process.env.BLINKPAY_CLIENT_ID, process.env.BLINKPAY_CLIENT_SECRET);
+import axios from 'axios';
+const client = new BlinkDebitClient(
+    axios,
+    process.env.BLINKPAY_DEBIT_URL,
+    process.env.BLINKPAY_CLIENT_ID,
+    process.env.BLINKPAY_CLIENT_SECRET
+);
 ```
+
+**Recommended**: Use constructor #1 or #2 with environment variables for production.
 
 ## Request ID, Correlation ID and Idempotency Key
 An optional request ID, correlation ID and idempotency key can be added as arguments to API calls. They will be generated for you automatically if they are not provided.
 
-A request can have one request ID and one idempotency key but multiple correlation IDs in case of retries.
+**Important**: All IDs are generated once per operation and reused across retry attempts. This ensures:
+- Consistent distributed tracing (same `request-id` and `x-correlation-id` across all retries)
+- Idempotency safety (same `idempotency-key` prevents duplicate operations on retry)
 
 ## Full Examples
 > **Note:** For error handling, a BlinkServiceException can be caught.
@@ -252,7 +308,7 @@ const request = {
 };
 
 const qpCreateResponse = await client.createQuickPayment(request);
-_logger.LogInformation("Redirect URL: {}", qpCreateResponseredirectUri); // Redirect the consumer to this URL
+log.info("Redirect URL:", qpCreateResponse.redirectUri); // Redirect the consumer to this URL
 const qpId = qpCreateResponse.quickPaymentId;
 const qpResponse = await client.awaitSuccessfulQuickPaymentOrThrowException(qpId, 300); // Will throw an exception if the payment was not successful after 5min
 ```
@@ -278,15 +334,86 @@ const request = {
 
 const createConsentResponse = await client.createSingleConsent(request);
 const redirectUri = createConsentResponse.redirectUri; // Redirect the consumer to this URL
-const paymentRequest = new PaymentRequest
-{
-    consentId = createConsentResponse.consentId
+const paymentRequest = {
+    consentId: createConsentResponse.consentId
 };
 
 const paymentResponse = await client.createPayment(paymentRequest);
-_logger.LogInformation("Payment Status: {}", await client.getPayment(paymentResponse.paymentId).status);
+const payment = await client.getPayment(paymentResponse.paymentId);
+log.info("Payment Status:", payment.status);
 // TODO inspect the payment result status
 ```
+
+## Retry Behavior and Automatic Retries
+
+The SDK automatically retries failed API requests in the following scenarios:
+
+**Automatically Retried:**
+- Network errors (no response from server)
+- 401 Unauthorized (triggers token refresh + one retry)
+- 429 Rate Limit Exceeded (with exponential backoff)
+- 5xx Server Errors (with exponential backoff)
+
+**NOT Retried:**
+- 4xx Client Errors (except 401 and 429)
+- 408 Request Timeout (client-side timeout)
+
+**Retry Configuration:**
+- Maximum 3 total attempts (1 initial + 2 retries)
+- Exponential backoff: 1 second, then 5 seconds
+- Same `request-id`, `x-correlation-id`, and `idempotency-key` reused across retries
+
+All request IDs and idempotency keys are auto-generated if not provided, ensuring safe retries without duplicate operations.
+
+## Polling and Timeout Behavior
+
+The SDK provides helper methods to wait for consent authorization and payment completion:
+
+### Auto-Revoke on Timeout
+
+| Method | Auto-Revokes on Timeout? | Reason |
+|--------|-------------------------|--------|
+| `awaitSuccessfulQuickPayment` | ✅ **YES** | Quick payments combine consent + payment - should complete immediately or be cancelled |
+| `awaitAuthorisedSingleConsent` | ❌ **NO** | Single consents require separate payment step - no funds processed if abandoned |
+| `awaitAuthorisedEnduringConsent` | ✅ **YES** | Enduring consents grant ongoing access - clean up if abandoned for security |
+| `awaitSuccessfulPayment` | ❌ N/A | Payments cannot be revoked once initiated |
+
+**Best Practices:**
+- Manually revoke single or enduring consents if you determine the customer has permanently abandoned the authorization flow (before timeout expires)
+- Enduring consents will auto-revoke on timeout, but earlier manual revocation improves security
+
+### Payment Settlement and Wash-up Process
+
+**Important**: Payment settlement is asynchronous. Payments transition through these states:
+
+**Settlement Statuses**:
+- `Pending` - Payment initiated, not yet settled
+- `AcceptedSettlementInProcess` - Settlement in progress
+- `AcceptedSettlementCompleted` - ✅ **ONLY THIS STATUS means money has been sent from the payer's bank**
+- `Rejected` - Payment failed
+
+**Wash-up Implementation**:
+```typescript
+// Poll payment status until settlement completes
+async function waitForSettlement(paymentId: string, maxAttempts: number = 60): Promise<Payment> {
+    for (let i = 0; i < maxAttempts; i++) {
+        const payment = await client.getPayment(paymentId);
+
+        if (payment.status === 'AcceptedSettlementCompleted') {
+            return payment; // SUCCESS - funds sent from payer's bank
+        }
+
+        if (payment.status === 'Rejected') {
+            throw new Error('Payment rejected');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+    }
+    throw new Error('Payment settlement timeout');
+}
+```
+
+**Only `AcceptedSettlementCompleted` confirms funds have been sent from the payer's bank.** In rare cases, payments may remain in `AcceptedSettlementInProcess` for extended periods.
 
 ## Individual API Call Examples
 ### Bank Metadata

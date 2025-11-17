@@ -27,6 +27,8 @@ import {BankMetadata} from '../../dto/index.js';
 import {BlinkInvalidValueException} from "../../exceptions/index.js";
 import {GenericParameters} from "../../util/types.js";
 import {buildRequestHeaders} from "../../util/helper.js";
+import {executeWithRetry} from "../../util/retry-helper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * BankMetadataApi - axios parameter creator
@@ -100,16 +102,23 @@ export const BankMetadataApiFp = function (axios: AxiosInstance, configuration?:
          * @param {GenericParameters} params the generic parameters
          */
         async getMeta(params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<Array<BankMetadata>>>> {
-            const localVarAxiosArgs = await BankMetadataApiAxiosParamCreator(axios, configuration).getMeta(params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await BankMetadataApiAxiosParamCreator(axios, configuration).getMeta(paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
     }

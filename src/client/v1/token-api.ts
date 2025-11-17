@@ -26,6 +26,7 @@ import {Configuration} from '../../../configuration.js';
 import {AccessTokenResponse} from '../../dto/v1/access-token-response.js';
 
 export class TokenAPI {
+    private static readonly TOKEN_REFRESH_BUFFER_SECONDS = 60;
     private readonly _axios: AxiosInstance;
     private readonly _configuration: Configuration;
 
@@ -38,16 +39,22 @@ export class TokenAPI {
      * Gets the OAuth2 access token, refreshing it if expired or not yet obtained.
      *
      * This method checks if the current access token is valid (exists and not expired).
-     * If the token is missing or expired, it automatically triggers a refresh before returning.
+     * If the token is missing or will expire within 60 seconds, it automatically triggers
+     * a refresh before returning. The 60-second buffer ensures the token remains valid
+     * for the duration of the API request.
      *
+     * @param {boolean} forceRefresh - If true, forces a token refresh regardless of expiration time
      * @returns {Promise<string | ((name?: string, scopes?: string[]) => string) | ((name?: string, scopes?: string[]) => Promise<string>)>}
      *          The access token, either as a string or as a function that returns a string/Promise<string>
      * @throws {BlinkForbiddenException} When the client credentials are invalid or insufficient permissions
      * @throws {BlinkServiceException} When the token refresh fails for other reasons
      */
-    async getAccessToken(): Promise<string | ((name?: string, scopes?: string[]) => string) | ((name?: string, scopes?: string[]) => Promise<string>)> {
-        // If token is undefined or expired, refresh it
-        if (!this._configuration.accessToken || new Date() >= this._configuration.expirationDate) {
+    async getAccessToken(forceRefresh: boolean = false): Promise<string | ((name?: string, scopes?: string[]) => string) | ((name?: string, scopes?: string[]) => Promise<string>)> {
+        // Calculate the expiration threshold (current time + 60 seconds buffer)
+        const expirationThreshold = new Date(Date.now() + (TokenAPI.TOKEN_REFRESH_BUFFER_SECONDS * 1000));
+
+        // If token is undefined, expired, or will expire soon (within buffer period), refresh it
+        if (forceRefresh || !this._configuration.accessToken || expirationThreshold >= this._configuration.expirationDate) {
             await this.refreshToken();
         }
 

@@ -5,20 +5,14 @@ const config: Config.InitialOptions = {
     testEnvironment: 'node',
     testMatch: ['**/?(*.)+(spec|test).ts?(x)', '**/integrationTests/**/*.[jt]s?(x)'],
 
-    // 1) TS is compiled by ts-jest in ESM mode
+    // TS is compiled by ts-jest
     transform: {
-        '^.+\\.(ts|tsx)$': ['ts-jest', { useESM: true, tsconfig: 'tsconfig.json' }],
-        // 2) JS (including node_modules/uuid) is compiled by babel-jest
-        '^.+\\.(js|jsx)$': 'babel-jest',
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
+            tsconfig: 'tsconfig.json'
+        }],
     },
 
-    // 3) Allow transforming ESM deps in node_modules (uuid)
-    transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
-
-    // 4) Treat TS as ESM in Jest’s runtime
-    extensionsToTreatAsEsm: ['.ts'],
-
-    // 5) Help Jest resolve ESM “.js” extension emitted by TS in relative imports
+    // Help Jest resolve ".js" extension in TypeScript imports
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',
     },

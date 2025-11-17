@@ -28,6 +28,8 @@ import {decamelizeKeys} from 'humps';
 import {BlinkInvalidValueException} from '../../exceptions/index.js';
 import {GenericParameters} from "../../util/types.js";
 import {buildRequestHeaders} from "../../util/helper.js";
+import {executeWithRetry} from "../../util/retry-helper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * QuickPaymentsApi - axios parameter creator
@@ -221,16 +223,24 @@ export const QuickPaymentsApiFp = function (axios: AxiosInstance, configuration?
          * @param {GenericParameters} params the generic parameters
          */
         async createQuickPayment(body: QuickPaymentRequest, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<CreateQuickPaymentResponse>>> {
-            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).createQuickPayment(body, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+            const idempotencyKey = params.idempotencyKey || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId, idempotencyKey };
+            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).createQuickPayment(body, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId, idempotencyKey }
+                );
             };
         },
         /**
@@ -240,16 +250,23 @@ export const QuickPaymentsApiFp = function (axios: AxiosInstance, configuration?
          * @param {GenericParameters} params the generic parameters
          */
         async getQuickPayment(quickPaymentId: string, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<QuickPaymentResponse>>> {
-            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).getQuickPayment(quickPaymentId, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).getQuickPayment(quickPaymentId, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
         /**
@@ -259,16 +276,23 @@ export const QuickPaymentsApiFp = function (axios: AxiosInstance, configuration?
          * @param {GenericParameters} params the generic parameters
          */
         async revokeQuickPayment(quickPaymentId: string, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<void>>> {
-            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).revokeQuickPayment(quickPaymentId, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await QuickPaymentsApiAxiosParamCreator(axios, configuration).revokeQuickPayment(quickPaymentId, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
     }

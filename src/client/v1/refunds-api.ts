@@ -28,6 +28,8 @@ import {decamelizeKeys} from 'humps';
 import {BlinkInvalidValueException} from '../../exceptions/index.js';
 import {GenericParameters} from "../../util/types.js";
 import {buildRequestHeaders} from "../../util/helper.js";
+import {executeWithRetry} from "../../util/retry-helper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * RefundsApi - axios parameter creator
@@ -173,16 +175,23 @@ export const RefundsApiFp = function (axios: AxiosInstance, configuration?: Conf
          @param {GenericParameters} params the generic parameters
          */
         async createRefund(body: RefundDetail, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<RefundResponse>>> {
-            const localVarAxiosArgs = await RefundsApiAxiosParamCreator(axios, configuration).createRefund(body, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await RefundsApiAxiosParamCreator(axios, configuration).createRefund(body, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
         /**
@@ -192,16 +201,23 @@ export const RefundsApiFp = function (axios: AxiosInstance, configuration?: Conf
          * @param {GenericParameters} params the generic parameters
          */
         async getRefund(refundId: string, params: GenericParameters = {}): Promise<(axios?: AxiosInstance, basePath?: string) => Promise<AxiosResponse<Refund>>> {
-            const localVarAxiosArgs = await RefundsApiAxiosParamCreator(axios, configuration).getRefund(refundId, params);
+            // Auto-generate IDs if not provided - reused across retries
+            const requestId = params.requestId || uuidv4();
+            const correlationId = params.xCorrelationId || uuidv4();
+
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const localVarAxiosArgs = await RefundsApiAxiosParamCreator(axios, configuration).getRefund(refundId, paramsWithIds);
+
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
                 const axiosRequestArgs: AxiosRequestConfig = {
                     ...localVarAxiosArgs.options,
                     url: basePath + localVarAxiosArgs.url
                 };
-                if (configuration && configuration.retryPolicy) {
-                    return configuration.retryPolicy.execute(() => axios.request(axiosRequestArgs))
-                }
-                return axios.request(axiosRequestArgs);
+                return executeWithRetry(
+                    () => axios.request(axiosRequestArgs),
+                    configuration,
+                    { attemptNumber: 0, requestId, correlationId }
+                );
             };
         },
     }
