@@ -22,7 +22,8 @@ describe('Bank enum wire values', () => {
         expect(Bank.BNZ).toBe('BNZ');
         expect(Bank.Westpac).toBe('Westpac');
         expect(Bank.KiwiBank).toBe('Kiwibank');
-        expect(Bank.Cybersource).toBe('Cybersource');
+        expect(Bank.NZHL).toBe('NZHL');
         expect(Bank.PNZ).toBe('PNZ');
+        expect(Bank.Card).toBe('Card');
     });
 });
