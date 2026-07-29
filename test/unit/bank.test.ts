@@ -10,10 +10,9 @@
 import {Bank} from '../../src/dto/v1/bank';
 
 describe('Bank enum wire values', () => {
-    it('should serialise KiwiBank to the "Kiwibank" wire value', () => {
-        // BDL-1260: the member name stays KiwiBank for source compatibility,
-        // but the wire value the backend expects is "Kiwibank".
-        expect(Bank.KiwiBank).toBe('Kiwibank');
+    it('should serialise Kiwibank to the "Kiwibank" wire value', () => {
+        // BDL-1260: the member name matches the wire value the backend expects.
+        expect(Bank.Kiwibank).toBe('Kiwibank');
     });
 
     it('should pin the wire value for every bank', () => {
@@ -21,7 +20,7 @@ describe('Bank enum wire values', () => {
         expect(Bank.ANZ).toBe('ANZ');
         expect(Bank.BNZ).toBe('BNZ');
         expect(Bank.Westpac).toBe('Westpac');
-        expect(Bank.KiwiBank).toBe('Kiwibank');
+        expect(Bank.Kiwibank).toBe('Kiwibank');
         expect(Bank.NZHL).toBe('NZHL');
         expect(Bank.PNZ).toBe('PNZ');
         expect(Bank.Card).toBe('Card');
