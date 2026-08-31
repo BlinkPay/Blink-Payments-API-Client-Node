@@ -83,11 +83,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sonar
       - name: Run Sonar
-        uses: sonarsource/sonarqube-scan-action@v3.0.0
+        uses: sonarsource/sonarqube-scan-action@v8
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.projectKey=blink-debit-api-client-node
             -Dsonar.organization=blinkpay
         env:
