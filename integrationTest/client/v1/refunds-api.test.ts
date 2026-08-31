@@ -26,7 +26,7 @@ import {
     AmountCurrencyEnum,
     AuthFlow,
     AuthFlowDetailTypeEnum,
-    Bank, BlinkNotImplementedException,
+    Bank, BlinkInvalidValueException,
     DecoupledFlow,
     EnduringConsentRequest,
     EnduringConsentsApiFactory,
@@ -334,8 +334,8 @@ describe('RefundsApi Integration Test', () => {
         try {
             await apiInstance.createRefund(refundRequest);
         } catch (e) {
-            expect(e).toBeInstanceOf(BlinkNotImplementedException);
-            expect(e.message).toBe("Full refund is not yet implemented");
+            expect(e).toBeInstanceOf(BlinkInvalidValueException);
+            expect(e.message).toBe("Refund type [full_refund] is not yet supported for open banking payments — use an account-number refund instead, or contact BlinkPay");
         }
     });
 
@@ -416,8 +416,8 @@ describe('RefundsApi Integration Test', () => {
         try {
             await apiInstance.createRefund(refundRequest);
         } catch (e) {
-            expect(e).toBeInstanceOf(BlinkNotImplementedException);
-            expect(e.message).toBe("Partial refund is not yet implemented");
+            expect(e).toBeInstanceOf(BlinkInvalidValueException);
+            expect(e.message).toBe("Refund type [partial_refund] is not yet supported for open banking payments — use an account-number refund instead, or contact BlinkPay");
         }
     });
 });
