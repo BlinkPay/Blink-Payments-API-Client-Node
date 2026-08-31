@@ -14,9 +14,9 @@ jobs:
       matrix:
         node-version: [ 22 ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -24,15 +24,15 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -43,7 +43,7 @@ jobs:
     needs: sonar
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install packages
         run: npm ci
       - name: Build
@@ -59,7 +59,7 @@ jobs:
     needs: cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install packages
         run: npm ci
       - name: Run Snyk to check for vulnerabilities
@@ -74,20 +74,19 @@ jobs:
     needs: snyk
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache SonarQube packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: |
             ${{ runner.os }}-sonar
       - name: Run Sonar
-        uses: sonarsource/sonarqube-scan-action@v3.0.0
+        uses: sonarsource/sonarqube-scan-action@v8
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.projectKey=blink-debit-api-client-node
             -Dsonar.organization=blinkpay
         env:
