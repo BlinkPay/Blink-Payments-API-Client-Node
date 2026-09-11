@@ -12,13 +12,23 @@ jobs:
       matrix:
         node-version: [ 22 ]
     if: github.event.release.target_commitish == 'master'
+    permissions:
+      # Lets npm authenticate to the registry via OIDC (trusted publishing) instead of a long-lived token
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org/
+      - name: Update npm
+        # Node 22 bundles npm 10; trusted publishing needs 11.5.1+ and staged publishing needs 11.15.0+
+        run: npm install -g npm@latest
       - name: Install packages
         run: npm ci
       - name: Set version
@@ -27,7 +37,7 @@ jobs:
         run: npm run build
       - name: Verify package contents
         run: npm pack --dry-run
-      - name: Publish
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage for publishing
+        # Submits the package to npm's staging area; a maintainer approves it with 2FA before it goes live.
+        # Authenticates via OIDC, so no NPM_TOKEN is needed here.
+        run: npm stage publish

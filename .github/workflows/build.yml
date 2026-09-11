@@ -15,6 +15,9 @@ jobs:
         node-version: [ 22 ]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
         with:
@@ -25,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Cache SonarCloud packages
         uses: actions/cache@v6
         with:
@@ -44,6 +50,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Install packages
         run: npm ci
       - name: Build
@@ -60,10 +69,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Install packages
         run: npm ci
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
+        uses: snyk/actions/node@12140f4059e244892ae643824a95459a102120dd # master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: blinkpay-zw9
@@ -75,6 +87,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
+          persist-credentials: false
       - name: Cache SonarQube packages
         uses: actions/cache@v6
         with:
@@ -83,7 +98,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sonar
       - name: Run Sonar
-        uses: sonarsource/sonarqube-scan-action@v8
+        uses: sonarsource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         with:
           projectBaseDir: .
           args: >

@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/BlinkPay/Blink-Debit-API-Client-Node/master/assets/images/blinkpay-logo.png" alt="BlinkPay" width="240">
+
 # Blink Payments API client for Node.js
 [![CI](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml/badge.svg)](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml)
 [![NPM](https://img.shields.io/npm/v/blink-debit-api-client-node.svg)](https://npmjs.org/package/blink-debit-api-client-node)
