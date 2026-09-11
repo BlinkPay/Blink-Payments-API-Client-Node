@@ -66,6 +66,8 @@ jobs:
 
   snyk:
     needs: cache
+    # Snyk test quota is limited, so only scan on merge to master, not on every PR
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,6 +78,8 @@ jobs:
         run: npm ci
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@12140f4059e244892ae643824a95459a102120dd # master
+        with:
+          command: monitor
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: blinkpay-zw9
@@ -83,7 +87,7 @@ jobs:
         continue-on-error: true
 
   sonar:
-    needs: snyk
+    needs: cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
