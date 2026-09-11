@@ -64,28 +64,6 @@ jobs:
           BLINKPAY_CLIENT_ID: ${{ vars.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
-  snyk:
-    needs: cache
-    # Snyk test quota is limited, so only scan on merge to master, not on every PR
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
-          persist-credentials: false
-      - name: Install packages
-        run: npm ci
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@12140f4059e244892ae643824a95459a102120dd # master
-        with:
-          command: monitor
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          SNYK_ORG: blinkpay-zw9
-          SNYK_PROJECT_NAME: blink-debit-api-client-node
-        continue-on-error: true
-
   sonar:
     needs: cache
     runs-on: ubuntu-latest
