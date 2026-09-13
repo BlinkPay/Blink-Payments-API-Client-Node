@@ -1,9 +1,11 @@
+<img src="https://raw.githubusercontent.com/BlinkPay/Blink-Payments-API-Client-Node/master/assets/images/blinkpay-logo.png" alt="BlinkPay" width="240">
+
 # Blink Payments API client for Node.js
-[![CI](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml/badge.svg)](https://github.com/BlinkPay/Blink-Debit-API-Client-Node/actions/workflows/build.yml)
+[![CI](https://github.com/BlinkPay/Blink-Payments-API-Client-Node/actions/workflows/build.yml/badge.svg)](https://github.com/BlinkPay/Blink-Payments-API-Client-Node/actions/workflows/build.yml)
 [![NPM](https://img.shields.io/npm/v/blink-debit-api-client-node.svg)](https://npmjs.org/package/blink-debit-api-client-node)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-node&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-node)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-node&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-node)
-[![Snyk security](https://img.shields.io/badge/Snyk_security-monitored-9043C6)](https://app.snyk.io/org/blinkpay-zw9/project/bac031c3-97b5-430a-b642-0ccf1302441c)
+[![Snyk security](https://snyk.io/test/github/BlinkPay/Blink-Payments-API-Client-Node/badge.svg)](https://snyk.io/test/github/BlinkPay/Blink-Payments-API-Client-Node)
 
 # Table of Contents
 1. [Introduction](#introduction)

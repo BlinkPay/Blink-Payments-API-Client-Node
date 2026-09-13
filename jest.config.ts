@@ -5,6 +5,9 @@ const config: Config.InitialOptions = {
     testEnvironment: 'node',
     testMatch: ['**/?(*.)+(spec|test).ts?(x)', '**/integrationTests/**/*.[jt]s?(x)'],
 
+    // Stop Jest discovering copies of the repo (e.g. Claude Code worktrees) and the build output
+    modulePathIgnorePatterns: ['<rootDir>/.claude/', '<rootDir>/dist/'],
+
     // TS is compiled by ts-jest
     transform: {
         '^.+\\.(ts|tsx)$': ['ts-jest', {

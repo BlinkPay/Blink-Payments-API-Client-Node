@@ -31,7 +31,7 @@ import {
     BlinkConsentTimeoutException,
     BlinkDebitClient,
     BlinkResourceNotFoundException,
-    BlinkServiceException, CardNetwork, CardPaymentType,
+    BlinkServiceException,
     ConsentDetailTypeEnum,
     ConsentStatusEnum,
     DecoupledFlow,
@@ -583,7 +583,7 @@ describe('BlinkDebitClient Integration Tests', () => {
             await instance.awaitSuccessfulQuickPayment(quickPaymentId, 30);
         } catch (e) {
             expect(e).toBeInstanceOf(BlinkResourceNotFoundException);
-            expect(e.message).toEqual(`Consent with ID [${quickPaymentId}] does not exist`);
+            expect(e.message).toEqual(`Quick payment with ID [${quickPaymentId}] does not exist`);
         }
     });
 
@@ -708,7 +708,7 @@ describe('BlinkDebitClient Integration Tests', () => {
             await instance.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 30);
         } catch (e) {
             expect(e).toBeInstanceOf(BlinkResourceNotFoundException);
-            expect(e.message).toEqual(`Consent with ID [${quickPaymentId}] does not exist`);
+            expect(e.message).toEqual(`Quick payment with ID [${quickPaymentId}] does not exist`);
         }
     });
 

@@ -267,7 +267,7 @@ ls -la src/client/v1/*-api.ts
 
 ## Contact & Resources
 
-- **Repository**: https://github.com/BlinkPay/Blink-Debit-API-Client-Node
+- **Repository**: https://github.com/BlinkPay/Blink-Payments-API-Client-Node
 - **BlinkPay Docs**: (Contact BlinkPay for documentation)
 - **OpenAPI Spec**: Provided separately by BlinkPay
 - **Support**: sysadmin@blinkpay.co.nz

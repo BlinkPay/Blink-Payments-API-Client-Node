@@ -16,5 +16,5 @@
     "types": ["node", "jest"],
     "typeRoots": ["node_modules/@types"]
   },
-  "exclude": ["dist", "node_modules", "integrationTest", "test", "test-app.ts"]
+  "exclude": ["dist", "node_modules", "integrationTest", "test", "test-app.ts", "meta"]
 }
