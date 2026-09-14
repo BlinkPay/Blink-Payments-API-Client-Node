@@ -60,6 +60,16 @@ jobs:
           path: coverage
         # No artifact when build_test failed before the tests ran; scan without coverage.
         continue-on-error: true
+      # Sonar reports 0.0% rather than failing when the report is absent, so say so here.
+      - name: Check the coverage report arrived
+        run: |
+          if [ -s coverage/lcov.info ]; then
+            echo "::notice::Coverage report found: $(grep -c '^SF:' coverage/lcov.info) files"
+          else
+            echo "::warning::No coverage report at coverage/lcov.info; Sonar will report 0.0%"
+            echo "lcov.info files actually present:"
+            find . -name lcov.info -not -path './node_modules/*'
+          fi
       - name: Cache SonarQube packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
