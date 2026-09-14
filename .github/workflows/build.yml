@@ -64,6 +64,8 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         with:
           projectBaseDir: .
+          # sonar.coverage.exclusions drops the DTOs from the coverage metric but keeps them
+          # analysed: they are generated from the OpenAPI spec, so covering them tests the generator.
           args: >
             -Dsonar.projectKey=blink-debit-api-client-node
             -Dsonar.organization=blinkpay
@@ -71,6 +73,7 @@ jobs:
             -Dsonar.tests=test,integrationTest
             -Dsonar.exclusions=dist/**,coverage/**,assets/**,.github/**,test/**,integrationTest/**
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.coverage.exclusions=src/dto/**
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io

@@ -1,6 +1,6 @@
 {
   "name": "blink-debit-api-client-node",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "The Blink Debit API client for Node.js",
   "author": "Rey Vincent Babilonia (rey.babilonia@blinkpay.co.nz)",
   "keywords": [
