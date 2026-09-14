@@ -8,70 +8,68 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  build_test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 22 ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
           persist-credentials: false
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: ${{ matrix.node-version }}
-
-  cache:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
-          persist-credentials: false
-      - name: Cache SonarCloud packages
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache npm dependencies
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-  build_test:
-    needs: sonar
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
-          persist-credentials: false
+          node-version: 22
+          cache: npm
       - name: Install packages
-        run: npm ci
+        # Dependency lifecycle scripts are a supply-chain vector and nothing here needs them
+        run: npm ci --ignore-scripts
       - name: Build
         run: npm run build --if-present
       - name: Test
-        run: npm test
+        run: npm test -- --coverage
         env:
           BLINKPAY_DEBIT_URL: ${{ vars.DEBIT_URL }}
           BLINKPAY_CLIENT_ID: ${{ vars.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      - name: Upload coverage report
+        # Uploaded on a red run too, so a sandbox flake in the integration suite
+        # does not also cost us the Sonar analysis.
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: coverage/lcov.info
 
   sonar:
-    needs: cache
+    needs: build_test
+    # Quality feedback should still land when the tests fail.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Nothing in this job pushes back to the repo, so don't leave the token in .git/config
           persist-credentials: false
+          # Full history so SonarCloud can attribute new code accurately
+          fetch-depth: 0
+      # Sonar does not run the tests; it reads the report build_test generated.
+      - name: Download coverage report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage
+          path: coverage
+        # No artifact when build_test failed before the tests ran; scan without coverage.
+        continue-on-error: true
+      # Sonar reports 0.0% rather than failing when the report is absent, so say so here.
+      - name: Check the coverage report arrived
+        run: |
+          if [ -s coverage/lcov.info ]; then
+            echo "::notice::Coverage report found: $(grep -c '^SF:' coverage/lcov.info) files"
+          else
+            echo "::warning::No coverage report at coverage/lcov.info; Sonar will report 0.0%"
+            echo "lcov.info files actually present:"
+            find . -name lcov.info -not -path './node_modules/*'
+          fi
       - name: Cache SonarQube packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -83,9 +81,16 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         with:
           projectBaseDir: .
+          # sonar.coverage.exclusions drops the DTOs from the coverage metric but keeps them
+          # analysed: they are generated from the OpenAPI spec, so covering them tests the generator.
           args: >
             -Dsonar.projectKey=blink-debit-api-client-node
             -Dsonar.organization=blinkpay
+            -Dsonar.sources=.
+            -Dsonar.tests=test,integrationTest
+            -Dsonar.exclusions=node_modules/**,dist/**,coverage/**,assets/**,.github/**,test/**,integrationTest/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.coverage.exclusions=src/dto/**
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
