@@ -32,6 +32,9 @@ jobs:
           BLINKPAY_CLIENT_ID: ${{ vars.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       - name: Upload coverage report
+        # Uploaded on a red run too, so a sandbox flake in the integration suite
+        # does not also cost us the Sonar analysis.
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: coverage
@@ -39,6 +42,8 @@ jobs:
 
   sonar:
     needs: build_test
+    # Quality feedback should still land when the tests fail.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,6 +58,8 @@ jobs:
         with:
           name: coverage
           path: coverage
+        # No artifact when build_test failed before the tests ran; scan without coverage.
+        continue-on-error: true
       - name: Cache SonarQube packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -71,7 +78,7 @@ jobs:
             -Dsonar.organization=blinkpay
             -Dsonar.sources=.
             -Dsonar.tests=test,integrationTest
-            -Dsonar.exclusions=dist/**,coverage/**,assets/**,.github/**,test/**,integrationTest/**
+            -Dsonar.exclusions=node_modules/**,dist/**,coverage/**,assets/**,.github/**,test/**,integrationTest/**
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.coverage.exclusions=src/dto/**
         env:
