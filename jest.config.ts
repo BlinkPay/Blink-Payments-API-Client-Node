@@ -15,6 +15,10 @@ const config: Config.InitialOptions = {
         }],
     },
 
+    // lcov is what SonarCloud reads in CI; run locally with `npm test -- --coverage`
+    coverageReporters: ['lcov', 'text-summary'],
+    collectCoverageFrom: ['src/**/*.ts', '*.ts', '!jest.config.ts'],
+
     // Help Jest resolve ".js" extension in TypeScript imports
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',
