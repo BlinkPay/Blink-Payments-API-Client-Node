@@ -53,7 +53,7 @@ export const RefundsApiAxiosParamCreator = function (axios: AxiosInstance, confi
          * @param {GenericParameters} params the generic parameters
          */
         createRefund: async (body: RefundDetail, params: GenericParameters = {}): Promise<RequestArgs> => {
-            const {requestId, xCorrelationId, xCustomerIp, xCustomerUserAgent, options} = params;
+            const {requestId, xCorrelationId, xCustomerIp, xCustomerUserAgent, idempotencyKey, options} = params;
             const localVarPath = `/refunds`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, 'https://example.com');
@@ -66,7 +66,8 @@ export const RefundsApiAxiosParamCreator = function (axios: AxiosInstance, confi
                 requestId,
                 xCorrelationId,
                 xCustomerIp,
-                xCustomerUserAgent
+                xCustomerUserAgent,
+                idempotencyKey
             });
             const localVarQueryParameter: Record<string, string> = {};
 
@@ -178,8 +179,9 @@ export const RefundsApiFp = function (axios: AxiosInstance, configuration?: Conf
             // Auto-generate IDs if not provided - reused across retries
             const requestId = params.requestId || uuidv4();
             const correlationId = params.xCorrelationId || uuidv4();
+            const idempotencyKey = params.idempotencyKey || uuidv4();
 
-            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId };
+            const paramsWithIds = { ...params, requestId, xCorrelationId: correlationId, idempotencyKey };
             const localVarAxiosArgs = await RefundsApiAxiosParamCreator(axios, configuration).createRefund(body, paramsWithIds);
 
             return (axios: AxiosInstance, basePath: string = configuration.basePath) => {
@@ -190,7 +192,7 @@ export const RefundsApiFp = function (axios: AxiosInstance, configuration?: Conf
                 return executeWithRetry(
                     () => axios.request(axiosRequestArgs),
                     configuration,
-                    { attemptNumber: 0, requestId, correlationId }
+                    { attemptNumber: 0, requestId, correlationId, idempotencyKey }
                 );
             };
         },
