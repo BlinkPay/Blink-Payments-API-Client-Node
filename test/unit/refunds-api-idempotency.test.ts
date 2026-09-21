@@ -24,11 +24,6 @@
  * Unit tests for the idempotency key on the refunds endpoints.
  */
 
-// Must be first: configuration.ts reaches TokenAPI through the src/index.js barrel, which
-// exports blink-debit-client ahead of token-api. Loading the leaf up front is what stops the
-// Configuration constructor seeing TokenAPI as undefined.
-import '../../src/client/v1/token-api';
-
 import axios, {AxiosInstance} from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import {BlinkDebitClient} from '../../src/client/v1/blink-debit-client';
