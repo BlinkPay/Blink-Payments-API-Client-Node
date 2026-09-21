@@ -360,6 +360,15 @@ The SDK automatically retries failed API requests in the following scenarios:
 - 4xx Client Errors (except 401 and 429)
 - 408 Request Timeout (client-side timeout)
 
+> **Known deviation in 1.8.0 — the two lists above describe the intended policy, not the
+> current one.** The Axios response interceptor converts every HTTP error into a typed
+> `Blink*Exception` before the retry layer sees it, so the retry layer cannot read the status
+> code off the error. In practice it treats *every* failed request as a network error: 4xx
+> responses are retried too, and the 401 token-refresh path does not trigger. This is
+> pre-existing and affects all endpoints, not just refunds. It is why supplying an
+> `idempotency-key` matters — a retried `POST /refunds` is de-duplicated by the API rather
+> than creating a second refund.
+
 **Retry Configuration:**
 - Maximum 3 total attempts (1 initial + 2 retries)
 - Exponential backoff: 1 second, then 5 seconds
@@ -908,6 +917,9 @@ const params = {
 
 const refundResponse = await client.createRefund(refundRequest, params);
 ```
+The optional second `params` argument shown above applies to every `createRefund` call,
+including the two below.
+
 #### Full Refund (Not yet implemented)
 ```javascript
 const refundRequest = {
