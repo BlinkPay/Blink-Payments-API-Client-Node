@@ -360,6 +360,15 @@ The SDK automatically retries failed API requests in the following scenarios:
 - 4xx Client Errors (except 401 and 429)
 - 408 Request Timeout (client-side timeout)
 
+> **Known deviation in 1.7.4 — the two lists above describe the intended policy, not the
+> current one.** The Axios response interceptor converts every HTTP error into a typed
+> `Blink*Exception` before the retry layer sees it, so the retry layer cannot read the status
+> code off the error. In practice it treats *every* failed request as a network error: 4xx
+> responses are retried too, and the 401 token-refresh path does not trigger. This is
+> pre-existing and affects all endpoints, not just refunds. It is why supplying an
+> `idempotency-key` matters — a retried `POST /refunds` is de-duplicated by the API rather
+> than creating a second refund.
+
 **Retry Configuration:**
 - Maximum 3 total attempts (1 initial + 2 retries)
 - Exponential backoff: 1 second, then 5 seconds
@@ -879,6 +888,22 @@ const payment = await client.getPayment(paymentId);
 ```
 
 ### Refunds
+#### Idempotency
+`POST /refunds` accepts an `idempotency-key` header (published in Blink Debit spec 1.0.60).
+The SDK sends one on every `createRefund` call — your value if you pass one, otherwise a
+generated UUID v4 — and reuses it across all retry attempts. The API then treats a repeat as:
+
+- **same key, same payload** — replays the original `201` with the original `refund_id`, so a
+  retry after a dropped response cannot refund twice;
+- **same key, different payload** — `409` `BP702`;
+- **same key, still in flight** — `409` `BP711`.
+
+Supply your own key when the retry might outlive the process (a job that re-runs the refund
+after a restart); the generated key only protects retries within a single call.
+
+> A `201` means the refund was accepted, not that money moved — check the refund's status with
+> `getRefund`.
+
 #### Account Number Refund
 ```javascript
 const refundRequest = {
@@ -886,8 +911,15 @@ const refundRequest = {
     paymentId: paymentId
 }
 
-const refundResponse = await client.createRefund(request);
+const params = {
+    idempotencyKey: idempotencyKey // optional; generated if omitted
+};
+
+const refundResponse = await client.createRefund(refundRequest, params);
 ```
+The optional second `params` argument shown above applies to every `createRefund` call,
+including the two below.
+
 #### Full Refund (Not yet implemented)
 ```javascript
 const refundRequest = {
@@ -901,7 +933,7 @@ const refundRequest = {
     consentRedirect: redirectUri
 }
 
-const refundResponse = await client.createRefund(request);
+const refundResponse = await client.createRefund(refundRequest);
 ```
 #### Partial Refund (Not yet implemented)
 ```javascript
@@ -920,7 +952,7 @@ const refundRequest = {
     }
 }
 
-const refundResponse = await client.createRefund(request);
+const refundResponse = await client.createRefund(refundRequest);
 ```
 #### Retrieval
 ```javascript

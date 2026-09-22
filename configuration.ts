@@ -33,9 +33,11 @@ import {
     BlinkResourceNotFoundException,
     BlinkRetryableException,
     BlinkServiceException,
-    BlinkUnauthorisedException,
-    TokenAPI
-} from './src/index.js';
+    BlinkUnauthorisedException
+} from './src/exceptions/index.js';
+// Not via './src/index.js': that barrel exports blink-debit-client before token-api, and
+// blink-debit-client imports this module, so TokenAPI resolves undefined through it.
+import {TokenAPI} from './src/client/v1/token-api.js';
 import {ExponentialBackoff, handleType, retry, RetryPolicy} from 'cockatiel';
 import {BlinkPayConfig} from './blinkpay-config.js';
 import log from 'loglevel';
