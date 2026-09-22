@@ -360,7 +360,7 @@ The SDK automatically retries failed API requests in the following scenarios:
 - 4xx Client Errors (except 401 and 429)
 - 408 Request Timeout (client-side timeout)
 
-> **Known deviation in 1.8.0 — the two lists above describe the intended policy, not the
+> **Known deviation in 1.7.4 — the two lists above describe the intended policy, not the
 > current one.** The Axios response interceptor converts every HTTP error into a typed
 > `Blink*Exception` before the retry layer sees it, so the retry layer cannot read the status
 > code off the error. In practice it treats *every* failed request as a network error: 4xx
