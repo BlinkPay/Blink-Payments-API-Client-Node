@@ -20,7 +20,6 @@ const { consent } = await client.getQuickPayment(quickPaymentId);
 // Fall back to the creation time when the status has never changed
 const lastChanged = consent.statusUpdatedTimestamp ?? consent.creationTimestamp;
 
-// Or check before use
 if (consent.statusUpdatedTimestamp !== undefined) {
     // ...
 }
