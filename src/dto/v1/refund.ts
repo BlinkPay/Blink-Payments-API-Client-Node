@@ -48,11 +48,11 @@ export interface Refund {
      */
     creationTimestamp: Date;
     /**
-     * The time that the status was last updated.
+     * The time that the status was last updated. Absent until the status first changes.
      * @type {Date}
      * @memberof Refund
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      * The customer account number used or to be used for the refund.
      * @type {string}

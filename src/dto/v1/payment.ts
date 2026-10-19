@@ -64,11 +64,11 @@ export class Payment {
      */
     creationTimestamp: Date;
     /**
-     * The timestamp that the payment status was last updated.
+     * The timestamp that the payment status was last updated. Absent until the status first changes.
      * @type {Date}
      * @memberof Payment
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      *
      * @type {PaymentRequest}

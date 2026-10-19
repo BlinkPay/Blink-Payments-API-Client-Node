@@ -51,11 +51,11 @@ export interface Consent {
      */
     creationTimestamp: Date;
     /**
-     * The time that the status was last updated
+     * The time that the status was last updated. Absent until the status first changes.
      * @type {Date}
      * @memberof Consent
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      * The consent details
      * @type {EnduringConsentRequest | SingleConsentRequest}
