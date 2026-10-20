@@ -55,7 +55,7 @@ export interface Consent {
      * @type {Date}
      * @memberof Consent
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      * The consent details
      * @type {EnduringConsentRequest | SingleConsentRequest}

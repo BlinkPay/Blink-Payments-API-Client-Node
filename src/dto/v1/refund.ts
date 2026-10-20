@@ -52,7 +52,7 @@ export interface Refund {
      * @type {Date}
      * @memberof Refund
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      * The customer account number used or to be used for the refund.
      * @type {string}

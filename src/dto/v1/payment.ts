@@ -68,7 +68,7 @@ export class Payment {
      * @type {Date}
      * @memberof Payment
      */
-    statusUpdatedTimestamp: Date;
+    statusUpdatedTimestamp?: Date;
     /**
      *
      * @type {PaymentRequest}
