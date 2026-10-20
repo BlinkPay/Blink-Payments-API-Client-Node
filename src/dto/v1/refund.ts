@@ -48,7 +48,7 @@ export interface Refund {
      */
     creationTimestamp: Date;
     /**
-     * The time that the status was last updated. Absent until the status first changes.
+     * The time that the status was last updated.
      * @type {Date}
      * @memberof Refund
      */
