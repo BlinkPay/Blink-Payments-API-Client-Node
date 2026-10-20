@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.8.0
+## 1.7.5
 
 ### Changed
 - `statusUpdatedTimestamp` is now optional on `Consent`, `Payment` and `Refund`. The API omits it until
@@ -8,7 +8,7 @@
   choosing a bank (`GatewayAwaitingSubmission`). The SDK already returned `undefined` in that case; the
   type now says so.
 
-### Migrating from 1.7.x
+### Migrating from 1.7.4 and earlier
 Runtime behaviour is unchanged, and JavaScript callers need do nothing. TypeScript callers compiling
 with `strict` or `strictNullChecks` will now get a compile error wherever they use the field as if it
 were always present — the places that would otherwise throw a `TypeError` at runtime when it is
