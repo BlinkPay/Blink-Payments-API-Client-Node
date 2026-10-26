@@ -12,8 +12,9 @@
 
 ### Migrating from 1.7.5 and earlier
 JavaScript callers need do nothing. TypeScript callers compiling with `strict` or `strictNullChecks`
-that read `identifierValue` off a consent response must handle `null`, and a value that is not a string
-no longer compiles on a request.
+that read `identifierValue` off a consent response must handle `null`. On a request, `identifierValue`
+must now be a `string`: a value typed as `IdentifierValue`, or any other non-string, no longer compiles.
+`IdentifierValue` is still exported but nothing uses it.
 
 ## 1.7.5
 
