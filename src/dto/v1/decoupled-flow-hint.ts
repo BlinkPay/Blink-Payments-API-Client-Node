@@ -22,7 +22,6 @@
 
 import {FlowHint} from './flow-hint.js';
 import {IdentifierType} from './identifier-type.js';
-import {IdentifierValue} from './identifier-value.js';
 import {Transform} from "class-transformer";
 
 /**
@@ -42,9 +41,11 @@ export class DecoupledFlowHint extends FlowHint {
     })
     identifierType: IdentifierType;
     /**
-     *
-     * @type {IdentifierValue}
+     * The identifier value. Required in requests. In responses it is `null` once the consent is no longer awaiting
+     * submission or authorisation (it may already be `null` once the bank has accepted the request); a `consent_id`
+     * reference is always returned.
+     * @type {string | null}
      * @memberof DecoupledFlowHint
      */
-    identifierValue: IdentifierValue;
+    identifierValue: string | null;
 }
