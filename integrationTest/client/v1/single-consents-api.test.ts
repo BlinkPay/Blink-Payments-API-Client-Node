@@ -495,7 +495,7 @@ describe('SingleConsentsApi Integration Test', () => {
                     expect(flowHint.type).toEqual(FlowHintTypeEnum.Decoupled)
                     expect(flowHint.bank).toEqual(Bank.PNZ);
                     expect(flowHint.identifierType).toEqual(IdentifierType.PhoneNumber);
-                    expect(['+64-259531933', null]).toContain(flowHint.identifierValue);
+                    expect(flowHint.identifierValue).toEqual('+64-259531933');
                 }
             }
 
