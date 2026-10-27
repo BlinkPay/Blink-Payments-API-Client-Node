@@ -18,6 +18,9 @@ const config: Config.InitialOptions = {
     // lcov is what SonarCloud reads in CI; run locally with `npm test -- --coverage`
     coverageReporters: ['lcov', 'text-summary'],
     collectCoverageFrom: ['src/**/*.ts', '*.ts', '!jest.config.ts'],
+    // The DTOs are generated from the OpenAPI spec, so covering them tests the generator.
+    // Sonar drops them through sonar.coverage.exclusions; this keeps Aikido's figure aligned.
+    coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/src/dto/'],
 
     // Help Jest resolve ".js" extension in TypeScript imports
     moduleNameMapper: {

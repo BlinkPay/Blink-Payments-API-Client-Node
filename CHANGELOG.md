@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.7.6
+
+### Changed
+- `identifier_value` is null in consent responses once the consent is no longer awaiting authorisation.
+  `identifierValue` on `DecoupledFlow` and `DecoupledFlowHint` is now typed `string | null` (it was the
+  empty `IdentifierValue` interface). The API keeps the key and sends `null`, and may do so as soon as the
+  bank has accepted the request; only a `consent_id` identifier is always echoed back. The SDK already
+  returned `null` at runtime; the type now says so. Requests are unchanged: send the customer's
+  identifier as before.
+
+### Migrating from 1.7.5 and earlier
+JavaScript callers need do nothing. TypeScript callers compiling with `strict` or `strictNullChecks`
+that read `identifierValue` off a consent response must handle `null`. On a request, `identifierValue`
+must now be a `string`: a value typed as `IdentifierValue`, or any other non-string, no longer compiles.
+`IdentifierValue` is still exported but nothing uses it.
+
 ## 1.7.5
 
 ### Changed

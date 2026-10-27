@@ -23,7 +23,6 @@
 import {AuthFlowDetail} from './auth-flow-detail.js';
 import {Bank} from './bank.js';
 import {IdentifierType} from './identifier-type.js';
-import {IdentifierValue} from './identifier-value.js';
 import {Transform} from "class-transformer";
 import {PaymentAcceptedReasonEnum} from "./payment.js";
 
@@ -50,11 +49,13 @@ export class DecoupledFlow extends AuthFlowDetail {
     })
     identifierType: IdentifierType;
     /**
-     *
-     * @type {IdentifierValue}
+     * The identifier value. Required in requests. In responses it is `null` once the consent is no longer awaiting
+     * submission or authorisation (it may already be `null` once the bank has accepted the request); a `consent_id`
+     * reference is always returned.
+     * @type {string | null}
      * @memberof DecoupledFlow
      */
-    identifierValue: IdentifierValue;
+    identifierValue: string | null;
     /**
      * A callback URL to call once the consent status has been updated using decoupled flow. Blink will also append the `cid` (the Consent ID) in an additional URL parameter. This is sent to your api as a GET request and will be retried up to 3 times if 5xx errors are received from your server.
      * @type {string}

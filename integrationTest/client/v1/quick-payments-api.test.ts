@@ -266,7 +266,7 @@ describe('QuickPaymentsApi Integration Test', () => {
                 expect(flow.bank).toEqual(Bank.PNZ);
                 expect(flow.callbackUrl).toEqual(callbackUrl);
                 expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-                expect(flow.identifierValue).toEqual('+64-259531933');
+                expect(['+64-259531933', null]).toContain(flow.identifierValue);
             }
 
             expect(detail.pcr).not.toBeNull();
@@ -305,7 +305,7 @@ describe('QuickPaymentsApi Integration Test', () => {
                 expect(flow.bank).toEqual(Bank.PNZ);
                 expect(flow.callbackUrl).toEqual(callbackUrl);
                 expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-                expect(flow.identifierValue).toEqual('+64-259531933');
+                expect(['+64-259531933', null]).toContain(flow.identifierValue);
             }
 
             expect(detail.pcr).not.toBeNull();
@@ -548,7 +548,7 @@ describe('QuickPaymentsApi Integration Test', () => {
                     expect(flowHint.type).toEqual(FlowHintTypeEnum.Decoupled)
                     expect(flowHint.bank).toEqual(Bank.PNZ);
                     expect(flowHint.identifierType).toEqual(IdentifierType.PhoneNumber);
-                    expect(flowHint.identifierValue).toEqual('+64-259531933');
+                    expect(['+64-259531933', null]).toContain(flowHint.identifierValue);
                 }
             }
 

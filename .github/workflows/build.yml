@@ -40,6 +40,32 @@ jobs:
           name: coverage
           path: coverage/lcov.info
 
+  # Aikido's PR check waits 30 minutes for a report tied to the PR head commit,
+  # which the action reads from the event payload. Kept as its own job so the
+  # OIDC token grant stays off the test job, as Aikido recommends. Fork PRs
+  # cannot mint an OIDC token, so they are skipped.
+  aikido-coverage:
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    needs: build_test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download coverage report
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage
+          path: coverage
+      - name: Upload coverage to Aikido
+        uses: AikidoSec/code-coverage-github-action@e0637ab96a560c1ab11671c41a4a4668075bae0e # v2.1.1
+        with:
+          region: au
+          file-paths: coverage/lcov.info
+
   sonar:
     needs: build_test
     # Quality feedback should still land when the tests fail.

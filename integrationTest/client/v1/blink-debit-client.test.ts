@@ -188,7 +188,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -299,7 +299,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -416,7 +416,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.period).toEqual(Period.Fortnightly);
 
@@ -528,7 +528,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.period).toEqual(Period.Fortnightly);
 
@@ -650,7 +650,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -770,7 +770,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -878,7 +878,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -973,7 +973,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -1067,7 +1067,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
@@ -1157,7 +1157,7 @@ describe('BlinkDebitClient Integration Tests', () => {
         expect(flow.bank).toEqual(Bank.PNZ);
         expect(flow.callbackUrl).toEqual(callbackUrl);
         expect(flow.identifierType).toEqual(IdentifierType.PhoneNumber);
-        expect(flow.identifierValue).toEqual('+64-259531933');
+        expect(['+64-259531933', null]).toContain(flow.identifierValue);
 
         expect(detail.pcr).not.toBeNull();
         expect(detail.pcr.particulars).toEqual('particulars');
