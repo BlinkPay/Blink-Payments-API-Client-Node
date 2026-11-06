@@ -104,7 +104,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sonar
       - name: Run Sonar
-        uses: sonarsource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        uses: sonarsource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
         with:
           projectBaseDir: .
           # sonar.coverage.exclusions drops the DTOs from the coverage metric but keeps them
