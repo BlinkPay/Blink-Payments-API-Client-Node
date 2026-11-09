@@ -426,6 +426,22 @@ async function waitForSettlement(paymentId: string, maxAttempts: number = 60): P
 
 **Only `AcceptedSettlementCompleted` confirms funds have been sent from the payer's bank.** In rare cases, payments may remain in `AcceptedSettlementInProcess` for extended periods.
 
+## Surcharging
+Where surcharging applies, Blink returns the surcharge alongside the amount you requested. On single consents, quick payments and payments, `amount.surcharge` is the surcharge and `amount.totalCharge` is the total charged to the customer (`total` + `surcharge`). On a surcharged enduring consent, `maximumAmountPayment` and `maximumAmountPeriod` carry the same two fields, with `totalCharge` being the raised maximum the bank is asked to authorise.
+
+While a gateway consent or quick payment is in `GatewayAwaitingSubmission`, `surchargeOptions` gives a best-effort preview of what each payment method would add: `bank`, and `card` only when the consent can be paid by card. Once the customer chooses a method, the amount fields replace it. Any of these fields may be absent, for example when surcharging does not apply.
+
+These fields are read-only. The SDK strips them from request bodies, so an amount taken from a response can be reused in a request.
+
+```typescript
+const quickPayment = await client.getQuickPayment(quickPaymentId);
+const detail = quickPayment.consent.detail as SingleConsentRequest;
+console.log(detail.amount.total, detail.amount.surcharge, detail.amount.totalCharge);
+console.log(quickPayment.consent.surchargeOptions?.card?.totalCharge);
+```
+
+See [Surcharging](https://merchants.blinkpay.co.nz/docs/debit/guides/surcharging) for when the surcharge is known and how it is calculated.
+
 ## Individual API Call Examples
 ### Bank Metadata
 Supplies the supported banks and supported flows on your account.
