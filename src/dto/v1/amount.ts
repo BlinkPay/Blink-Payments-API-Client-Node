@@ -39,6 +39,19 @@ export interface Amount {
      * @memberof Amount
      */
     currency: AmountCurrencyEnum;
+    /**
+     * The surcharge applied to the payment, where surcharging applies. Read-only: returned by Blink, never sent.
+     * @type {string}
+     * @memberof Amount
+     */
+    surcharge?: string | null;
+    /**
+     * The total charged to the customer, inclusive of any surcharge (total + surcharge). On an enduring consent's
+     * maxima it is the raised maximum. Read-only: returned by Blink, never sent.
+     * @type {string}
+     * @memberof Amount
+     */
+    totalCharge?: string | null;
 }
 
 /**

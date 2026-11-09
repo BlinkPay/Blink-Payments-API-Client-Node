@@ -40,3 +40,6 @@ export * from './refund-detail.js';
 export * from './refund-request.js';
 export * from './refund-response.js';
 export * from './single-consent-request.js';
+export * from './surcharge-detail.js';
+export * from './surcharge-option.js';
+export * from './surcharge-options.js';

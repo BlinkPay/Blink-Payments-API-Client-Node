@@ -44,3 +44,33 @@ export const buildRequestHeaders = ({
 
   return headers;
 };
+
+const AMOUNT_KEYS = ['amount', 'maximum_amount_payment', 'maximum_amount_period'];
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Remove the read-only surcharge fields Blink returns from a snake_case request body.
+ * An amount read off a response may carry `surcharge` and `total_charge`, which a consent request
+ * rejects with a 400, so they are dropped from every amount in the body, along with `surcharge_options`.
+ * The input is not mutated.
+ *
+ * @param body the request body, already converted to snake_case
+ * @returns a copy of the body without the read-only fields, or the body unchanged if it is not an object
+ */
+export const stripReadOnlyRequestFields = <T>(body: T): T => {
+  if (!isPlainObject(body)) {
+    return body;
+  }
+
+  const { surcharge_options, ...result }: Record<string, unknown> = body;
+  for (const key of AMOUNT_KEYS) {
+    const amount = result[key];
+    if (isPlainObject(amount)) {
+      const { surcharge, total_charge, ...rest } = amount;
+      result[key] = rest;
+    }
+  }
+  return result as T;
+};
