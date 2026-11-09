@@ -57,7 +57,7 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
  * The input is not mutated.
  *
  * @param body the request body, already converted to snake_case
- * @returns a copy of the body without the read-only fields, or the body unchanged if it is not an object
+ * @returns a copy of the body without the read-only fields
  */
 export const stripReadOnlyRequestFields = <T>(body: T): T => {
   if (!isPlainObject(body)) {

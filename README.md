@@ -434,6 +434,8 @@ While a gateway consent or quick payment is in `GatewayAwaitingSubmission`, `sur
 These fields are read-only. The SDK strips them from request bodies, so an amount taken from a response can be reused in a request.
 
 ```typescript
+import { SingleConsentRequest } from 'blink-debit-api-client-node';
+
 const quickPayment = await client.getQuickPayment(quickPaymentId);
 const detail = quickPayment.consent.detail as SingleConsentRequest;
 console.log(detail.amount.total, detail.amount.surcharge, detail.amount.totalCharge);
