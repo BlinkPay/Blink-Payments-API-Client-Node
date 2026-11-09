@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.8.0
+
+### Added
+- Surcharge fields, all optional, nullable and read-only. `Amount` gains `surcharge` and `totalCharge`
+  (`total` + `surcharge`), returned on single consents, quick payments, payments and, as the raised maxima,
+  on a surcharged enduring consent's `maximumAmountPayment` and `maximumAmountPeriod`. `Consent` gains
+  `surchargeOptions`, a best-effort preview per payment method (`bank`, and `card` when the consent can be paid
+  by card) while a gateway consent is in `GatewayAwaitingSubmission`. New interfaces `SurchargeOptions`,
+  `SurchargeOption` and `SurchargeDetail`. See the README's Surcharging section.
+
+### Changed
+- Create requests for consents, quick payments, payments and refunds no longer send `surcharge` or
+  `total_charge` on any amount, or `surcharge_options`. The API rejects a consent request carrying them, and
+  `Amount` is shared by request and response types, so an amount read off a response can now be sent back
+  as-is. Nothing else in the request body changes.
+
+### Migrating from 1.7.6 and earlier
+Nothing to do. The API already returned these fields and the SDK already passed them through at runtime;
+TypeScript callers can now read them without a cast.
+
 ## 1.7.6
 
 ### Changed
