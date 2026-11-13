@@ -27,7 +27,7 @@ import {CreateQuickPaymentResponse, QuickPaymentRequest, QuickPaymentResponse} f
 import {decamelizeKeys} from 'humps';
 import {BlinkInvalidValueException} from '../../exceptions/index.js';
 import {GenericParameters} from "../../util/types.js";
-import {buildRequestHeaders} from "../../util/helper.js";
+import {buildRequestHeaders, stripReadOnlyRequestFields} from "../../util/helper.js";
 import {executeWithRetry} from "../../util/retry-helper.js";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -90,7 +90,7 @@ export const QuickPaymentsApiAxiosParamCreator = function (axios: AxiosInstance,
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options?.headers};
             const needsSerialization = (typeof body !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.data = needsSerialization ? JSON.stringify(body !== undefined ? decamelizeKeys(body) : {}) : (decamelizeKeys(body) || "");
+            localVarRequestOptions.data = needsSerialization ? JSON.stringify(body !== undefined ? stripReadOnlyRequestFields(decamelizeKeys(body)) : {}) : (stripReadOnlyRequestFields(decamelizeKeys(body)) || "");
 
             return {
                 url: localVarUrlObj.pathname + localVarUrlObj.search + localVarUrlObj.hash,

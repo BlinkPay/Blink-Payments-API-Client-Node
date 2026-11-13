@@ -24,6 +24,7 @@ import {EnduringConsentRequest} from './enduring-consent-request.js';
 import {Payment} from './payment.js';
 import {SingleConsentRequest} from './single-consent-request.js';
 import {CardNetwork} from "./card-network.js";
+import {SurchargeOptions} from './surcharge-options.js';
 
 /**
  * The model for a consent.
@@ -74,6 +75,13 @@ export interface Consent {
      * @memberOf Consent
      */
     cardNetwork?: CardNetwork;
+    /**
+     * A preview of the surcharge each payment method would add, returned while a gateway consent awaits submission.
+     * Read-only.
+     * @type {SurchargeOptions}
+     * @memberof Consent
+     */
+    surchargeOptions?: SurchargeOptions | null;
 }
 
 /**
